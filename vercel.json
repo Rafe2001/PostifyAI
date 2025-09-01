@@ -10,8 +10,5 @@
       "src": "/(.*)",
       "dest": "main.py"
     }
-  ],
-  "env": {
-    "GOOGLE_API_KEY": "AIzaSyDusP0ywnyGoOgYuYLjpxT3KhpTDGDXY_0"
-  }
+  ]
 }
