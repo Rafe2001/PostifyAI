@@ -12,6 +12,11 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Agent State
 class AgentState(TypedDict):
@@ -28,6 +33,7 @@ class AgentState(TypedDict):
     post_strategy: Optional[str]
     generated_posts: List[Dict[str, Any]]
     tokens_used: int
+    citations: List[Dict[str, str]]  # Added citations to state
 
 # Initialize LLM
 llm = ChatGoogleGenerativeAI(
@@ -37,14 +43,18 @@ llm = ChatGoogleGenerativeAI(
     
 )
 
-#Agent workflow functions
+
+# Agent workflow functions
 async def research_phase(state: AgentState) -> AgentState:
     """Research phase: gather information about the topic"""
     try:
-        research_data = search_linkedin_trends(state["topic"])
-        state["research_data"] = research_data
-    except Exception:
+        search_result = search_linkedin_trends(state["topic"])
+        state["research_data"] = search_result['research_text']
+        state["citations"] = search_result['citations']
+    except Exception as e:
+        logger.error(f"Research phase error: {str(e)}")
         state["research_data"] = f"General insights about {state['topic']}"
+        state["citations"] = []
     
     return state
 
@@ -193,7 +203,7 @@ IMPORTANT: Write only the post content, no additional text or explanations."""
             state["tokens_used"] += len(response.content.split()) * 1.3
             
         except Exception as e:
-            print(f"Error generating post {i+1}: {e}")
+            logger.error(f"Error generating post {i+1}: {e}")
             # Create a meaningful fallback post
             fallback_content = f"""🚀 Exploring {state["topic"]}
 
@@ -258,7 +268,8 @@ async def test_generation():
         research_data=None,
         post_strategy=None,
         generated_posts=[],
-        tokens_used=0
+        tokens_used=0,
+        citations=[]
     )
     
     print("\n🤖 Testing agent workflow...")
