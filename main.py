@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-app = FastAPI(title="LinkedIn Post Generator API", version="1.0.0")
+app = FastAPI(title="LinkedIn Post Generator API")
 
 # CORS middleware
 app.add_middleware(
